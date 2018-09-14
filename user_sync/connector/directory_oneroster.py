@@ -350,6 +350,11 @@ class OneRosterConnector(object):
         except Exception as e:
             raise AssertionException("Error filtering with predicate (%s): %s" % (filter_string, e))
 
+class OneRosterValueFormatter(object):
+    encoding = 'utf8'
+
+    def __init__(self, string_format):
+        return
 
 class OKTAValueFormatter(object):
     encoding = 'utf8'
