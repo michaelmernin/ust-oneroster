@@ -27,6 +27,10 @@ class ProcessLock(object):
         self.path = path
 
     def is_locked(self):
+        # Debugging is annoying with the logfile.
+        # DO NOT COMMIT THIS ACTION
+        return False
+
         # process is not locked if lock file does not exist
         if not os.path.exists(self.path):
             return False
