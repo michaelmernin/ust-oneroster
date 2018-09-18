@@ -69,7 +69,7 @@ class Connection:
         # return token
         pass
 
-    def getGroupId(self, groupName):
+    def getGroupId(self, groupType, groupName):
         # do fancy logic and stuff in here to decide if groupName is an id or a name
         # perhaps reference stored map for this as we discussed
         # ????????
@@ -94,7 +94,7 @@ class Connection:
             name = groupName
             type = "students"           # this would be a default and can be students/teachers/users
 
-        groupID = self.getGroupId(groupName)
+        groupID = self.getGroupId(groupType, groupName)
         # build URL eg: mockroster.io/oa/{groupType}/{groupID}/{type}
 
         if type == "courses":
