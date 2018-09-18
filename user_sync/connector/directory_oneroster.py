@@ -57,6 +57,64 @@ def connector_load_users_and_groups(state, groups=None, extended_attributes=None
     return state.load_users_and_groups(groups or [], extended_attributes or [], all_users)
 
 
+
+class Connection:
+
+    tokenurl = "xxx"
+    hosturl = "xxx"
+    token = "xxx"
+
+    def authenticate(self):
+        # Authentication here
+        # return token
+        pass
+
+    def getGroupId(self, groupName):
+        # do fancy logic and stuff in here to decide if groupName is an id or a name
+        # perhaps reference stored map for this as we discussed
+        # ????????
+        # profit
+        return "xxxx"
+
+    def getClasses(self, courseName):
+        # do magic stuff to get a list of class ID's for course
+        classList = ["xxx","yyy"]
+        return classList
+
+    def getUsers(self, groupType, groupName):
+
+        # groupType is classes,courses,schools, etc.....
+        # groupName looks like     "Algebra 1::students"
+        groupParts = groupName.split("::")
+
+        if len(groupParts) > 1:
+            name = groupParts[0]
+            type = groupParts[1]
+        else:
+            name = groupName
+            type = "students"           # this would be a default and can be students/teachers/users
+
+        groupID = self.getGroupId(groupName)
+        # build URL eg: mockroster.io/oa/{groupType}/{groupID}/{type}
+
+        if type == "courses":
+
+            # do a call to pick up all the classes
+            classList = self.getClasses(name)
+
+            for c in classList:
+                users = self.getUsers("classes", c)
+                # append to user list somewhere
+
+        else:
+            # users = api.get(URL, authentication, etc...)
+            # append to user list somewhere
+            pass
+
+
+
+
+
 class OneRosterConnector(object):
     name = 'oneroster'
 
@@ -126,6 +184,8 @@ class OneRosterConnector(object):
         #
         # logger.info('Connected')
 
+
+
     def load_users_and_groups(self, groups, extended_attributes, all_users):
         """
         :type groups: list(str)
@@ -187,66 +247,66 @@ class OneRosterConnector(object):
 
         return six.itervalues(users)
 
-    def find_group(self, group):
-        """
-        :type group: str
-        :rtype UserGroup
-        """
-        group = group.strip()
-        options = self.options
-        group_filter_format = options['group_filter_format']
-        try:
-            results = self.groups_client.get_groups(query=group_filter_format.format(group=group))
-        except KeyError as e:
-            raise AssertionException("Bad format key in group query (%s): %s" % (group_filter_format, e))
-        except OktaError as e:
-            self.logger.warning("Unable to query group")
-            raise AssertionException("Okta error querying for group: %s" % e)
-
-        if results is None:
-            self.logger.warning("No group found for: %s", group)
-        else:
-            for result in results:
-                if result.profile.name == group:
-                    return result
-
-        return None
-
-    def iter_group_members(self, group, filter_string, extended_attributes):
-        """
-        :type group: str
-        :type filter_string: str
-        :type extended_attributes: list
-        :rtype iterator(str, str)
-        """
-
-        user_attribute_names = []
-        user_attribute_names.extend(self.user_given_name_formatter.get_attribute_names())
-        user_attribute_names.extend(self.user_surname_formatter.get_attribute_names())
-        user_attribute_names.extend(self.user_country_code_formatter.get_attribute_names())
-        user_attribute_names.extend(self.user_identity_type_formatter.get_attribute_names())
-        user_attribute_names.extend(self.user_email_formatter.get_attribute_names())
-        user_attribute_names.extend(self.user_username_formatter.get_attribute_names())
-        user_attribute_names.extend(self.user_domain_formatter.get_attribute_names())
-        extended_attributes = list(set(extended_attributes) - set(user_attribute_names))
-        user_attribute_names.extend(extended_attributes)
-
-        res_group = self.find_group(group)
-        if res_group:
-            try:
-                attr_dict = OKTAValueFormatter.get_extended_attribute_dict(user_attribute_names)
-                members = self.groups_client.get_group_all_users(res_group.id, attr_dict)
-            except OktaError as e:
-                self.logger.warning("Unable to get_group_users")
-                raise AssertionException("Okta error querying for group users: %s" % e)
-            # Filtering users based all_users_filter query in config
-            for member in self.filter_users(members, filter_string):
-                user = self.convert_user(member, extended_attributes)
-                if not user:
-                    continue
-                yield (user)
-        else:
-            self.logger.warning("No group found for: %s", group)
+    # def find_group(self, group):
+    #     """
+    #     :type group: str
+    #     :rtype UserGroup
+    #     """
+    #     group = group.strip()
+    #     options = self.options
+    #     group_filter_format = options['group_filter_format']
+    #     try:
+    #         results = self.groups_client.get_groups(query=group_filter_format.format(group=group))
+    #     except KeyError as e:
+    #         raise AssertionException("Bad format key in group query (%s): %s" % (group_filter_format, e))
+    #     except OktaError as e:
+    #         self.logger.warning("Unable to query group")
+    #         raise AssertionException("Okta error querying for group: %s" % e)
+    #
+    #     if results is None:
+    #         self.logger.warning("No group found for: %s", group)
+    #     else:
+    #         for result in results:
+    #             if result.profile.name == group:
+    #                 return result
+    #
+    #     return None
+    #
+    # def iter_group_members(self, group, filter_string, extended_attributes):
+    #     """
+    #     :type group: str
+    #     :type filter_string: str
+    #     :type extended_attributes: list
+    #     :rtype iterator(str, str)
+    #     """
+    #
+    #     user_attribute_names = []
+    #     user_attribute_names.extend(self.user_given_name_formatter.get_attribute_names())
+    #     user_attribute_names.extend(self.user_surname_formatter.get_attribute_names())
+    #     user_attribute_names.extend(self.user_country_code_formatter.get_attribute_names())
+    #     user_attribute_names.extend(self.user_identity_type_formatter.get_attribute_names())
+    #     user_attribute_names.extend(self.user_email_formatter.get_attribute_names())
+    #     user_attribute_names.extend(self.user_username_formatter.get_attribute_names())
+    #     user_attribute_names.extend(self.user_domain_formatter.get_attribute_names())
+    #     extended_attributes = list(set(extended_attributes) - set(user_attribute_names))
+    #     user_attribute_names.extend(extended_attributes)
+    #
+    #     res_group = self.find_group(group)
+    #     if res_group:
+    #         try:
+    #             attr_dict = OKTAValueFormatter.get_extended_attribute_dict(user_attribute_names)
+    #             members = self.groups_client.get_group_all_users(res_group.id, attr_dict)
+    #         except OktaError as e:
+    #             self.logger.warning("Unable to get_group_users")
+    #             raise AssertionException("Okta error querying for group users: %s" % e)
+    #         # Filtering users based all_users_filter query in config
+    #         for member in self.filter_users(members, filter_string):
+    #             user = self.convert_user(member, extended_attributes)
+    #             if not user:
+    #                 continue
+    #             yield (user)
+    #     else:
+    #         self.logger.warning("No group found for: %s", group)
 
     def convert_user(self, record, extended_attributes):
 
@@ -323,32 +383,32 @@ class OneRosterConnector(object):
         user['source_attributes'] = source_attributes.copy()
         return user
 
-    def iter_search_result(self, filter_string, attributes):
-        """
-        type: filter_string: str
-        type: attributes: list(str)
-        """
-
-        attr_dict = OKTAValueFormatter.get_extended_attribute_dict(attributes)
-
-        try:
-            self.logger.info("Calling okta SDK get_users with the following %s", filter_string)
-            if attr_dict:
-                users = self.users_client.get_all_users(query=filter_string, extended_attribute=attr_dict)
-            else:
-                users = self.users_client.get_all_users(query=filter_string)
-        except OktaError as e:
-            self.logger.warning("Unable to query users")
-            raise AssertionException("Okta error querying for users: %s" % e)
-        return users
-
-    def filter_users(self, users, filter_string):
-        try:
-            return list(filter(lambda user: eval(filter_string), users))
-        except SyntaxError as e:
-            raise AssertionException("Invalid syntax in predicate (%s): cannot evaluate" % filter_string)
-        except Exception as e:
-            raise AssertionException("Error filtering with predicate (%s): %s" % (filter_string, e))
+    # def iter_search_result(self, filter_string, attributes):
+    #     """
+    #     type: filter_string: str
+    #     type: attributes: list(str)
+    #     """
+    #
+    #     attr_dict = OKTAValueFormatter.get_extended_attribute_dict(attributes)
+    #
+    #     try:
+    #         self.logger.info("Calling okta SDK get_users with the following %s", filter_string)
+    #         if attr_dict:
+    #             users = self.users_client.get_all_users(query=filter_string, extended_attribute=attr_dict)
+    #         else:
+    #             users = self.users_client.get_all_users(query=filter_string)
+    #     except OktaError as e:
+    #         self.logger.warning("Unable to query users")
+    #         raise AssertionException("Okta error querying for users: %s" % e)
+    #     return users
+    #
+    # def filter_users(self, users, filter_string):
+    #     try:
+    #         return list(filter(lambda user: eval(filter_string), users))
+    #     except SyntaxError as e:
+    #         raise AssertionException("Invalid syntax in predicate (%s): cannot evaluate" % filter_string)
+    #     except Exception as e:
+    #         raise AssertionException("Error filtering with predicate (%s): %s" % (filter_string, e))
 
 
 class OKTAValueFormatter(object):
