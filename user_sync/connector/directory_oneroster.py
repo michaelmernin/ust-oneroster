@@ -90,15 +90,15 @@ class OneRosterConnector(object):
 
 
 
-        OKTAValueFormatter.encoding = options['string_encoding']
+        OneRosterValueFormatter.encoding = options['string_encoding']
         self.user_identity_type = user_sync.identity_type.parse_identity_type(options['user_identity_type'])
-        self.user_identity_type_formatter = OKTAValueFormatter(options['user_identity_type_format'])
-        self.user_email_formatter = OKTAValueFormatter(options['user_email_format'])
-        self.user_username_formatter = OKTAValueFormatter(options['user_username_format'])
-        self.user_domain_formatter = OKTAValueFormatter(options['user_domain_format'])
-        self.user_given_name_formatter = OKTAValueFormatter(options['user_given_name_format'])
-        self.user_surname_formatter = OKTAValueFormatter(options['user_surname_format'])
-        self.user_country_code_formatter = OKTAValueFormatter(options['user_country_code_format'])
+        self.user_identity_type_formatter = OneRosterValueFormatter(options['user_identity_type_format'])
+        self.user_email_formatter = OneRosterValueFormatter(options['user_email_format'])
+        self.user_username_formatter = OneRosterValueFormatter(options['user_username_format'])
+        self.user_domain_formatter = OneRosterValueFormatter(options['user_domain_format'])
+        self.user_given_name_formatter = OneRosterValueFormatter(options['user_given_name_format'])
+        self.user_surname_formatter = OneRosterValueFormatter(options['user_surname_format'])
+        self.user_country_code_formatter = OneRosterValueFormatter(options['user_country_code_format'])
 
         self.users_client = None
         self.groups_client = None
@@ -234,7 +234,7 @@ class OneRosterConnector(object):
         res_group = self.find_group(group)
         if res_group:
             try:
-                attr_dict = OKTAValueFormatter.get_extended_attribute_dict(user_attribute_names)
+                attr_dict = OneRosterValueFormatter.get_extended_attribute_dict(user_attribute_names)
                 members = self.groups_client.get_group_all_users(res_group.id, attr_dict)
             except OktaError as e:
                 self.logger.warning("Unable to get_group_users")
@@ -251,7 +251,7 @@ class OneRosterConnector(object):
     def convert_user(self, record, extended_attributes):
 
         source_attributes = {}
-        source_attributes['login'] = login = OKTAValueFormatter.get_profile_value(record,'login')
+        source_attributes['login'] = login = OneRosterValueFormatter.get_profile_value(record,'login')
         email, last_attribute_name = self.user_email_formatter.generate_value(record)
         email = email.strip() if email else None
         if not email:
@@ -317,7 +317,7 @@ class OneRosterConnector(object):
 
         if extended_attributes is not None:
             for extended_attribute in extended_attributes:
-                extended_attribute_value = OKTAValueFormatter.get_profile_value(record, extended_attribute)
+                extended_attribute_value = OneRosterValueFormatter.get_profile_value(record, extended_attribute)
                 source_attributes[extended_attribute] = extended_attribute_value
 
         user['source_attributes'] = source_attributes.copy()
@@ -329,7 +329,7 @@ class OneRosterConnector(object):
         type: attributes: list(str)
         """
 
-        attr_dict = OKTAValueFormatter.get_extended_attribute_dict(attributes)
+        attr_dict = OneRosterValueFormatter.get_extended_attribute_dict(attributes)
 
         try:
             self.logger.info("Calling okta SDK get_users with the following %s", filter_string)
@@ -351,7 +351,7 @@ class OneRosterConnector(object):
             raise AssertionException("Error filtering with predicate (%s): %s" % (filter_string, e))
 
 
-class OKTAValueFormatter(object):
+class OneRosterValueFormatter(object):
     encoding = 'utf8'
 
     def __init__(self, string_format):
